@@ -37,7 +37,7 @@ else
 fi
 
 echo "=== Stap 2: Kind-cluster aanmaken ==="
-cat <<EOF | kind create cluster --name bryxx-demo --config=-
+cat <<EOF | kind create cluster --name argo-demo --config=-
 kind: Cluster
 apiVersion: kind.x-k8s.io/v1alpha4
 nodes:
@@ -51,13 +51,16 @@ nodes:
 - role: worker
 EOF
 
-
-
-
-
 echo "Kind-cluster aangemaakt."
 
-echo "=== Stap 3: kubectl installeren ==="
+echo "=== Stap 3: Nodes labelen voor Ingress ==="
+for node in $(kubectl get nodes -o name); do
+  kubectl label $node ingress-ready=true --overwrite
+done
+
+echo "Nodes gelabeld met ingress-ready=true."
+
+echo "=== Stap 4: kubectl installeren ==="
 if ! command -v kubectl &> /dev/null; then
   echo "Kubectl wordt geïnstalleerd..."
   curl -LO "https://dl.k8s.io/release/$(curl -L -s https://dl.k8s.io/release/stable.txt)/bin/linux/amd64/kubectl"
@@ -67,11 +70,11 @@ else
   echo "Kubectl is al geïnstalleerd."
 fi
 
-echo "=== Stap 4: ArgoCD installeren ==="
+echo "=== Stap 5: ArgoCD installeren ==="
 kubectl create namespace argocd
 kubectl apply -n argocd -f https://raw.githubusercontent.com/argoproj/argo-cd/stable/manifests/install.yaml
 
-echo "=== Stap 5: Kubernetes Dashboard installeren ==="
+echo "=== Stap 6: Kubernetes Dashboard installeren ==="
 kubectl apply -f https://raw.githubusercontent.com/kubernetes/dashboard/v2.7.0/aio/deploy/recommended.yaml
 
 kubectl create serviceaccount dashboard-admin -n kubernetes-dashboard
@@ -82,16 +85,12 @@ DASHBOARD_TOKEN=$(kubectl -n kubernetes-dashboard create token dashboard-admin)
 
 echo "Dashboard login token: $DASHBOARD_TOKEN"
 
-echo "=== Stap 6: Ingress Controller installeren ==="
-
-for node in $(kubectl get nodes -o name); do
-  kubectl label $node ingress-ready=true --overwrite
-done
+echo "=== Stap 7: Ingress Controller installeren ==="
 kubectl apply -f https://raw.githubusercontent.com/kubernetes/ingress-nginx/main/deploy/static/provider/kind/deploy.yaml
 
 wait_for_resource ingress-nginx "app.kubernetes.io/component=controller" "120s"
 
-echo "=== Stap 7: Prometheus en Grafana installeren ==="
+echo "=== Stap 8: Prometheus en Grafana installeren ==="
 if ! command -v helm &> /dev/null; then
   echo "Helm wordt geïnstalleerd..."
   curl https://raw.githubusercontent.com/helm/helm/master/scripts/get-helm-3 | bash
@@ -105,14 +104,16 @@ helm repo update
 helm install prometheus-stack prometheus-community/kube-prometheus-stack \
   --namespace monitoring --create-namespace
 
-echo "=== Stap 8: Toegang configureren ==="
+echo "=== Stap 9: Toegang configureren ==="
 ARGO_PORT=$(kubectl -n argocd get svc argocd-server -o=jsonpath='{.spec.ports[0].nodePort}')
 DASHBOARD_PORT=$(kubectl -n kubernetes-dashboard get svc kubernetes-dashboard -o=jsonpath='{.spec.ports[0].nodePort}')
+PROMETHEUS_PORT=$(kubectl -n monitoring get svc prometheus-stack-kube-prom-prometheus -o=jsonpath='{.spec.ports[0].nodePort}')
+GRAFANA_PORT=$(kubectl -n monitoring get svc prometheus-stack-grafana -o=jsonpath='{.spec.ports[0].nodePort}')
 
 echo "=== Toegang Informatie ==="
 echo "ArgoCD: http://localhost:$ARGO_PORT"
 echo "Dashboard: http://localhost:$DASHBOARD_PORT"
-echo "Prometheus: http://localhost:80 (via Ingress)"
-echo "Grafana: http://localhost:80 (via Ingress)"
+echo "Prometheus: http://localhost:$PROMETHEUS_PORT"
+echo "Grafana: http://localhost:$GRAFANA_PORT"
 
 echo "=== Installatie voltooid! ==="
