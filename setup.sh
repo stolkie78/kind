@@ -37,7 +37,7 @@ else
 fi
 
 echo "=== Stap 2: Kind-cluster aanmaken ==="
-cat <<EOF | kind create cluster --name argo-demo --config=-
+cat <<EOF | kind create cluster --name bryxx-demo --config=-
 kind: Cluster
 apiVersion: kind.x-k8s.io/v1alpha4
 nodes:
@@ -50,6 +50,10 @@ nodes:
 - role: worker
 - role: worker
 EOF
+
+
+
+
 
 echo "Kind-cluster aangemaakt."
 
@@ -79,6 +83,10 @@ DASHBOARD_TOKEN=$(kubectl -n kubernetes-dashboard create token dashboard-admin)
 echo "Dashboard login token: $DASHBOARD_TOKEN"
 
 echo "=== Stap 6: Ingress Controller installeren ==="
+
+for node in $(kubectl get nodes -o name); do
+  kubectl label $node ingress-ready=true --overwrite
+done
 kubectl apply -f https://raw.githubusercontent.com/kubernetes/ingress-nginx/main/deploy/static/provider/kind/deploy.yaml
 
 wait_for_resource ingress-nginx "app.kubernetes.io/component=controller" "120s"
