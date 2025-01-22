@@ -37,7 +37,7 @@ else
 fi
 
 echo "=== Stap 2: Kind-cluster aanmaken ==="
-cat <<EOF | kind create cluster --name bryxx-demo --config=-
+cat <<EOF | kind create cluster --name argo-demo --config=-
 kind: Cluster
 apiVersion: kind.x-k8s.io/v1alpha4
 nodes:
