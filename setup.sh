@@ -11,7 +11,7 @@ USE_LOCALHOST=true  # Zet op false om een specifiek IP-adres te gebruiken
 EXTERNAL_IP=""  # Specifiek IP-adres voor de Ingress Controller
 CLUSTER="cluster-1" # Zo heet het cluster
 ARGOCD_REPO="https://github.com/stolkie78/argocd-kind" # Hier staan de deployments voor argocd
-ARGOCD_PATH="deployments/" #Relatieve pad in argocd voor het zoeken van deployment files
+ARGOCD_PATH="applications/" #Relatieve pad in argocd voor het zoeken van deployment files
 ARGO_HOST=argocd.kind.local # Hostname voor ArgoCD
 
 function stop_message() {
