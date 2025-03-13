@@ -96,7 +96,6 @@ else
 fi
 
 EXTERNAL_ADDRESS=$([ "$USE_LOCALHOST" = true ] && echo "localhost" || echo "$EXTERNAL_IP")
-ARGOPASS=$(kubectl get secret argocd-initial-admin-secret -n argocd -o jsonpath="{.data.password}" | base64 --decode)
 sleep 60
 
 echo "==========================="
@@ -109,6 +108,7 @@ kubectl apply -f bootstrap/argocd/nginx-ingress.yaml
 echo "=== ARGOCD Repo toevoegen ==="
 wait_for_resource "argocd" "app.kubernetes.io/name=argocd-server" "120s"
 sleep 60
+ARGOPASS=$(kubectl get secret argocd-initial-admin-secret -n argocd -o jsonpath="{.data.password}" | base64 --decode)
 argocd login argocd.local --grpc-web --insecure --username admin --password "${ARGOPASS}"
 argocd repo add ${ARGOCD_REPO} --name kind-demo
 argocd app create config --repo "${ARGOCD_REPO}" --path "${ARGOCD_PATH}" --dest-server https://kubernetes.default.svc --dest-namespace argocd --sync-policy automated --auto-prune --self-heal --directory-recurse
