@@ -1,4 +1,7 @@
 #!/bin/bash
+#
+# This script creates a kind cluster
+#
 
 # Exit bij fouten
 set -e
@@ -6,7 +9,17 @@ set -e
 # Variabelen
 USE_LOCALHOST=true  # Zet op false om een specifiek IP-adres te gebruiken
 EXTERNAL_IP=""  # Specifiek IP-adres voor de Ingress Controller
-CLUSTER="kind"
+CLUSTER="kind" # Zo heet het cluster
+ARGOCD_REPO="https://github.com/stolkie78/bitvavo-scalper" # Hier staan de deployments voor argocd
+ARGOCD_PATH="kubernetes/" #Relatieve pad in argocd voor het zoeken van deployment files
+
+function stop_message() {
+  echo "==========================="
+  echo "CLUSTER ${CLUSTER} CONFIGURED"
+  echo "==========================="
+  echo "Delete the cluster with: kind delete cluster -n ${CLUSTER}"
+  exit 0
+}
 
 # Functie om te wachten op een resource
 wait_for_resource() {
@@ -30,24 +43,17 @@ wait_for_resource() {
   echo "Fout: Resources in namespace $namespace konden niet worden geactiveerd."
   exit 1
 }
-echo "==========================="
-echo "Installeren van kind"
-echo "==========================="
-if ! command -v kind &> /dev/null; then
-  echo "Kind wordt geïnstalleerd..."
-  curl -Lo ./kind https://kind.sigs.k8s.io/dl/v0.20.0/kind-linux-amd64
-  chmod +x ./kind
-  sudo mv ./kind /usr/local/bin/kind
-else
-  echo "Kind is al geïnstalleerd."
-fi
+
+# Stop als er al een cluster is
+kind get clusters | grep -q bryxx-demo && stop_message
+
 
 echo "==========================="
 echo "Kind-cluster aanmaken"
 echo "==========================="
-cat <<EOF | kind create cluster --name ${CLUSTER} --config=-
-kind: Cluster
+echo "kind: Cluster
 apiVersion: kind.x-k8s.io/v1alpha4
+name: ${CLUSTER}
 nodes:
 - role: control-plane
   extraPortMappings:
@@ -57,26 +63,10 @@ nodes:
       hostPort: 443
 - role: worker
 - role: worker
-EOF
+" > kind.yaml
 
-echo "Kind-cluster aangemaakt."
-
-#echo "=== Stap 3: Nodes labelen voor Ingress ==="
-#for node in $(kubectl get nodes -o name); do
-#  kubectl label $node ingress-ready=true --overwrite
-#done
-
-echo "==========================="
-echo "kubectl installeren"
-echo "==========================="
-if ! command -v kubectl &> /dev/null; then
-  echo "Kubectl wordt geïnstalleerd..."
-  curl -LO "https://dl.k8s.io/release/$(curl -L -s https://dl.k8s.io/release/stable.txt)/bin/linux/amd64/kubectl"
-  chmod +x kubectl
-  sudo mv kubectl /usr/local/bin/kubectl
-else
-  echo "Kubectl is al geïnstalleerd."
-fi
+echo "Kind-cluster config aangemaakt."
+kind create cluster --config kind.yaml
 
 echo "==========================="
 echo "ArgoCD installeren"
@@ -95,13 +85,43 @@ kubectl create clusterrolebinding dashboard-admin-binding \
 DASHBOARD_TOKEN=$(kubectl -n kubernetes-dashboard create token dashboard-admin)
 
 
-#kubectl apply -f deployments/argocd/ngnix-ingress.yaml
-#kubectl apply -f deployments/argocd/applications.yaml
+echo "==========================="
+echo "Ingress Controller installeren"
+echo "==========================="
+echo "- Nodes labelen voor Ingress"
+for node in $(kubectl get nodes -o name); do
+  kubectl label $node ingress-ready=true --overwrite
+done
+
+kubectl apply -f https://raw.githubusercontent.com/kubernetes/ingress-nginx/main/deploy/static/provider/kind/deploy.yaml
+wait_for_resource ingress-nginx "app.kubernetes.io/component=controller" "120s"
+echo "- Configureren van Ingress Controller"
+if [ "$USE_LOCALHOST" = true ]; then
+  echo "Ingress Controller gebruikt localhost."
+else
+  echo "Ingress Controller wordt geconfigureerd met extern IP: $EXTERNAL_IP"
+  kubectl patch deployment -n ingress-nginx ingress-nginx-controller --type=json \
+    -p='[{"op": "add", "path": "/spec/template/spec/containers/0/args/-", "value": "--publish-status-address='$EXTERNAL_IP'"}]'
+  kubectl rollout restart deployment -n ingress-nginx ingress-nginx-controller
+fi
+
+EXTERNAL_ADDRESS=$([ "$USE_LOCALHOST" = true ] && echo "localhost" || echo "$EXTERNAL_IP")
+ARGOPASS=$(kubectl get secret argocd-initial-admin-secret -n argocd -o jsonpath="{.data.password}" | base64 --decode)
+
+kubectl apply -f bootstrap/kubernetes-dashboard/ngnix-ingress.yaml
+kubectl apply -f bootstrap/argocd/ngnix-ingress.yaml
+
+echo "=== ARGOCD Repo toevoegen ==="
+wait_for_resource "argocd" "app.kubernetes.io/name=argocd-server" "120s"
 sleep 60
+argocd login argocd.local --grpc-web --insecure --username admin --password "${ARGOPASS}"
+argocd repo add ${ARGOCD_REPO} --name kind-demo
+argocd app create config --repo "${ARGOCD_REPO}" --path "${ARGOCD_PATH}" --dest-server https://kubernetes.default.svc --dest-namespace argocd --sync-policy automated --auto-prune --self-heal --directory-recurse
+
 echo "==========================="
 echo "PASSWORDS"
 echo "==========================="
-echo "Argocd admin: $(kubectl get secret argocd-initial-admin-secret -n argocd -o jsonpath="{.data.password}" | base64 --decode)"
+echo "Argocd admin: ${ARGOPASS}"
 echo "Dashboard login token: $DASHBOARD_TOKEN"
 
-
+stop_message
