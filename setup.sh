@@ -104,7 +104,7 @@ echo "ArgoCD installeren"
 echo "==========================="
 kubectl create namespace argocd
 kubectl apply -n argocd -f https://raw.githubusercontent.com/argoproj/argo-cd/stable/manifests/install.yaml
-kubectl apply -f bootstrap/argocd/ngnix-ingress.yaml
+kubectl apply -f bootstrap/argocd/nginx-ingress.yaml
 
 echo "=== ARGOCD Repo toevoegen ==="
 wait_for_resource "argocd" "app.kubernetes.io/name=argocd-server" "120s"
