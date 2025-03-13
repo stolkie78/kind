@@ -1,0 +1,26 @@
+2025-03-13T12:44:46.205921Z DEBUG flox::config: reading raw config (initialized: false, reload: false)
+2025-03-13T12:44:46.206085Z DEBUG flox::config: `$FLOX_CONFIG_DIR` set: /Users/giedo/.config/flox
+2025-03-13T12:44:46.206375Z DEBUG flox::utils::init::sentry: Initializing Sentry with DSN: https://85c9526795f5047c99a5247aab616295:@o4506548203094016.ingest.us.sentry.io/4506548241825792
+2025-03-13T12:44:46.206918Z DEBUG flox: set _FLOX_PKGDB_VERBOSITY=2
+2025-03-13T12:44:46.207788Z DEBUG flox::config: reading raw config (initialized: true, reload: false)
+2025-03-13T12:44:46.208163Z DEBUG flox::commands: Skipping update check in development mode
+2025-03-13T12:44:46.208460Z DEBUG flox::commands: Metrics collection enabled
+2025-03-13T12:44:46.208582Z DEBUG flox::utils::init::catalog_client: using catalog client with url: https://api.flox.dev
+2025-03-13T12:44:46.210887Z DEBUG flox::utils::init::metrics: Attempting to read own UUID from file
+2025-03-13T12:44:46.210999Z DEBUG flox::commands: features enabled, build=false, publish=false, upload=false, compose=false
+2025-03-13T12:44:46.211328Z DEBUG check-upgrade: flox::utils::metrics: pushing entry to metrics buffer: MetricEntry { subcommand: Some("check-upgrade"), extras: {}, timestamp: 2025-03-13 12:44:46.211231 +00:00:00, uuid: 5e8b05d8-54f4-4a6b-96a1-bc2811fa36c2, flox_version: "0.0.0-dirty", os_family: Some("Mac OS"), os_family_release: Some("24.3.0"), os: None, os_version: None, empty_flags: [] }
+2025-03-13T12:44:46.211495Z DEBUG check-upgrade: flox::commands: detected concrete environment type: path
+2025-03-13T12:44:46.211713Z DEBUG check-upgrade: flox_rust_sdk::providers::upgrade_checks: created unlocked upgrade information guard upgrade_information_path="/Volumes/Data/Git/me/kind/.flox/cache/upgrade-checks.json"
+2025-03-13T12:44:46.211987Z DEBUG check-upgrade: flox_rust_sdk::providers::upgrade_checks: lock acquired upgrade_information_path="/Volumes/Data/Git/me/kind/.flox/cache/upgrade-checks.json"
+2025-03-13T12:44:46.212059Z DEBUG check-upgrade:check-upgrade{progress="Performing dry upgrade"}: flox_rust_sdk::models::environment::core_environment: upgrading to_upgrade=""
+2025-03-13T12:44:46.212282Z DEBUG check-upgrade:check-upgrade{progress="Performing dry upgrade"}: flox_rust_sdk::models::environment::core_environment: checking group membership for requested packages
+2025-03-13T12:44:46.212288Z DEBUG check-upgrade:check-upgrade{progress="Performing dry upgrade"}: flox_rust_sdk::models::environment::core_environment: using catalog client to upgrade
+2025-03-13T12:44:46.212292Z DEBUG check-upgrade:check-upgrade{progress="Performing dry upgrade"}: flox_rust_sdk::models::environment::core_environment: upgrading to_upgrade=""
+2025-03-13T12:44:46.212431Z DEBUG check-upgrade:check-upgrade{progress="Performing dry upgrade"}: flox_rust_sdk::models::environment::core_environment: no groups or iids provided, unlocking all packages
+2025-03-13T12:44:46.212590Z DEBUG check-upgrade:check-upgrade{progress="Performing dry upgrade"}:resolve_manifest{progress="Locking environment"}:resolve{progress="Resolving packages from catalog"}: flox_rust_sdk::providers::catalog: resolving package groups n_groups=1
+2025-03-13T12:44:47.506886Z DEBUG check-upgrade:check-upgrade{progress="Performing dry upgrade"}:resolve_manifest{progress="Locking environment"}:resolve{progress="Resolving packages from catalog"}: flox_rust_sdk::providers::catalog: received resolved package groups n_groups=1
+2025-03-13T12:44:47.506978Z DEBUG check-upgrade:check-upgrade{progress="Performing dry upgrade"}:resolve_manifest{progress="Locking environment"}: flox_rust_sdk::models::lockfile: no resolution failures detected
+2025-03-13T12:44:47.560478Z DEBUG check-upgrade:check-upgrade{progress="Performing dry upgrade"}:build{progress="Building environment"}: flox_rust_sdk::providers::buildenv: using 'auto' store
+2025-03-13T12:44:47.560501Z DEBUG check-upgrade:check-upgrade{progress="Performing dry upgrade"}:build{progress="Building environment"}: flox_rust_sdk::providers::buildenv: building environment cmd=/nix/store/1prpckfgppkzdycvw4riqs47bkzq6918-nix-2.24.11/bin/nix --option extra-experimental-features 'nix-command flakes' --option pure-eval false --print-build-logs build --no-link --offline --json --file /nix/store/1ds92fwamsqr5bd5byggg8czg3rj2n9a-flox-buildenv-0.0.1/lib/buildenv.nix --argstr manifestLock /Users/giedo/.cache/flox/process/.tmpIRiKcv/.tmpSn6S7f
+2025-03-13T12:44:47.605622Z DEBUG check-upgrade: flox::commands::check_for_upgrades: Upgrading information with new result. diff={}
+2025-03-13T12:44:47.605808Z DEBUG check-upgrade: flox_rust_sdk::providers::upgrade_checks: wrote upgrade information upgrade_information_path="/Volumes/Data/Git/me/kind/.flox/cache/upgrade-checks.json"
