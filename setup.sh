@@ -12,6 +12,7 @@ EXTERNAL_IP=""  # Specifiek IP-adres voor de Ingress Controller
 CLUSTER="cluster-1" # Zo heet het cluster
 ARGOCD_REPO="https://github.com/stolkie78/argocd-kind" # Hier staan de deployments voor argocd
 ARGOCD_PATH="kubernetes/" #Relatieve pad in argocd voor het zoeken van deployment files
+ARGO_HOST=argocd.kind.local # Hostname voor ArgoCD
 
 function stop_message() {
   echo "==========================="
@@ -109,7 +110,7 @@ echo "=== ARGOCD Repo toevoegen ==="
 wait_for_resource "argocd" "app.kubernetes.io/name=argocd-server" "120s"
 sleep 60
 ARGOPASS=$(kubectl get secret argocd-initial-admin-secret -n argocd -o jsonpath="{.data.password}" | base64 --decode)
-argocd login argocd.local --grpc-web --insecure --username admin --password "${ARGOPASS}"
+argocd login ${ARGO_HOST} --grpc-web --insecure --username admin --password "${ARGOPASS}"
 argocd repo add ${ARGOCD_REPO} --name kind-demo
 argocd app create config --repo "${ARGOCD_REPO}" --path "${ARGOCD_PATH}" --dest-server https://kubernetes.default.svc --dest-namespace argocd --sync-policy automated --auto-prune --self-heal --directory-recurse
 
