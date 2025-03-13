@@ -9,8 +9,8 @@ set -e
 # Variabelen
 USE_LOCALHOST=true  # Zet op false om een specifiek IP-adres te gebruiken
 EXTERNAL_IP=""  # Specifiek IP-adres voor de Ingress Controller
-CLUSTER="kind" # Zo heet het cluster
-ARGOCD_REPO="https://github.com/stolkie78/bitvavo-scalper" # Hier staan de deployments voor argocd
+CLUSTER="cluster-1" # Zo heet het cluster
+ARGOCD_REPO="https://github.com/stolkie78/argocd-kind" # Hier staan de deployments voor argocd
 ARGOCD_PATH="kubernetes/" #Relatieve pad in argocd voor het zoeken van deployment files
 
 function stop_message() {
@@ -45,8 +45,7 @@ wait_for_resource() {
 }
 
 # Stop als er al een cluster is
-kind get clusters | grep -q bryxx-demo && stop_message
-
+kind get clusters | grep -q ${CLUSTER} && stop_message
 
 echo "==========================="
 echo "Kind-cluster aanmaken"
@@ -75,17 +74,6 @@ kubectl create namespace argocd
 kubectl apply -n argocd -f https://raw.githubusercontent.com/argoproj/argo-cd/stable/manifests/install.yaml
 
 echo "==========================="
-echo "Kubernetes Dashboard installeren"
-echo "==========================="
-kubectl apply -f https://raw.githubusercontent.com/kubernetes/dashboard/v2.7.0/aio/deploy/recommended.yaml
-kubectl create serviceaccount dashboard-admin -n kubernetes-dashboard
-kubectl create clusterrolebinding dashboard-admin-binding \
-  --clusterrole=cluster-admin \
-  --serviceaccount=kubernetes-dashboard:dashboard-admin
-DASHBOARD_TOKEN=$(kubectl -n kubernetes-dashboard create token dashboard-admin)
-
-
-echo "==========================="
 echo "Ingress Controller installeren"
 echo "==========================="
 echo "- Nodes labelen voor Ingress"
@@ -107,8 +95,7 @@ fi
 
 EXTERNAL_ADDRESS=$([ "$USE_LOCALHOST" = true ] && echo "localhost" || echo "$EXTERNAL_IP")
 ARGOPASS=$(kubectl get secret argocd-initial-admin-secret -n argocd -o jsonpath="{.data.password}" | base64 --decode)
-
-kubectl apply -f bootstrap/kubernetes-dashboard/ngnix-ingress.yaml
+sleep 60
 kubectl apply -f bootstrap/argocd/ngnix-ingress.yaml
 
 echo "=== ARGOCD Repo toevoegen ==="
