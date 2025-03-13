@@ -1,7 +1,0 @@
-2025-03-13T12:44:46.257394Z DEBUG flox_watchdog::sentry: Initializing Sentry with DSN: https://85c9526795f5047c99a5247aab616295:@o4506548203094016.ingest.us.sentry.io/4506548241825792
-2025-03-13T12:44:46.260436Z DEBUG sentry: enabled sentry client for DSN https://85c9526795f5047c99a5247aab616295:@o4506548203094016.ingest.us.sentry.io/4506548241825792    
-2025-03-13T12:44:46.260986Z DEBUG watchdog{socket="/Users/giedo/.cache/flox/run/flox.7e34812a.sock" log_dir="/Volumes/Data/Git/me/kind/.flox/log"}: flox_watchdog: starting
-2025-03-13T12:44:46.261029Z DEBUG watchdog{socket="/Users/giedo/.cache/flox/run/flox.7e34812a.sock" log_dir="/Volumes/Data/Git/me/kind/.flox/log"}: flox_watchdog: checked socket path="/Users/giedo/.cache/flox/run/flox.7e34812a.sock" exists=false
-2025-03-13T12:44:46.261034Z  INFO watchdog{socket="/Users/giedo/.cache/flox/run/flox.7e34812a.sock" log_dir="/Volumes/Data/Git/me/kind/.flox/log"}: flox_watchdog: watchdog is on duty this_pid=12654 target_activation_id="588785e2"
-2025-03-13T12:44:46.261108Z DEBUG flox_watchdog::logger: still watching, woof woof
-2025-03-13T12:44:46.261110Z DEBUG watchdog{socket="/Users/giedo/.cache/flox/run/flox.7e34812a.sock" log_dir="/Volumes/Data/Git/me/kind/.flox/log"}: flox_watchdog: waiting for termination
