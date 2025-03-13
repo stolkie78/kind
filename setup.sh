@@ -68,10 +68,12 @@ echo "Kind-cluster config aangemaakt."
 kind create cluster --config kind.yaml
 
 echo "==========================="
-echo "ArgoCD installeren"
+echo "Ingress Controller installeren"
 echo "==========================="
-kubectl create namespace argocd
-kubectl apply -n argocd -f https://raw.githubusercontent.com/argoproj/argo-cd/stable/manifests/install.yaml
+echo "- Nodes labelen voor Ingress"
+for node in $(kubectl get nodes -o name); do
+  kubectl label $node ingress-ready=true --overwrite
+done
 
 echo "==========================="
 echo "Ingress Controller installeren"
@@ -96,6 +98,12 @@ fi
 EXTERNAL_ADDRESS=$([ "$USE_LOCALHOST" = true ] && echo "localhost" || echo "$EXTERNAL_IP")
 ARGOPASS=$(kubectl get secret argocd-initial-admin-secret -n argocd -o jsonpath="{.data.password}" | base64 --decode)
 sleep 60
+
+echo "==========================="
+echo "ArgoCD installeren"
+echo "==========================="
+kubectl create namespace argocd
+kubectl apply -n argocd -f https://raw.githubusercontent.com/argoproj/argo-cd/stable/manifests/install.yaml
 kubectl apply -f bootstrap/argocd/ngnix-ingress.yaml
 
 echo "=== ARGOCD Repo toevoegen ==="
