@@ -13,6 +13,7 @@ CLUSTER="cluster-1" # Zo heet het cluster
 ARGOCD_REPO="https://github.com/stolkie78/argocd-kind" # Hier staan de deployments voor argocd
 ARGOCD_PATH="applications/" #Relatieve pad in argocd voor het zoeken van deployment files
 ARGO_HOST=argocd.kind.local # Hostname voor ArgoCD
+EXTERNAL_ADDRESS=$([ "$USE_LOCALHOST" = true ] && echo "localhost" || echo "$EXTERNAL_IP")
 
 function stop_message() {
   echo "==========================="
@@ -62,11 +63,14 @@ nodes:
     - containerPort: 443
       hostPort: 443
 - role: worker
-- role: worker
 " > kind.yaml
 
 echo "Kind-cluster config aangemaakt."
 kind create cluster --config kind.yaml
+
+docker update --cpus=2 --memory=2g --memory-swap=10g ${CLUSTER}-control-plane
+docker update --cpus=2 --memory=12g --memory-swap=12g ${CLUSTER}-worker
+
 
 echo "==========================="
 echo "Ingress Controller installeren"
@@ -96,7 +100,6 @@ else
   kubectl rollout restart deployment -n ingress-nginx ingress-nginx-controller
 fi
 
-EXTERNAL_ADDRESS=$([ "$USE_LOCALHOST" = true ] && echo "localhost" || echo "$EXTERNAL_IP")
 sleep 60
 
 echo "==========================="
@@ -118,6 +121,23 @@ echo "==========================="
 echo "PASSWORDS"
 echo "==========================="
 echo "Argocd admin: ${ARGOPASS}"
-echo "Dashboard login token: $DASHBOARD_TOKEN"
+
+echo "==========================="
+echo "Install Operators"
+echo "==========================="
+#ls crds/*.yaml | while read CRD; do kubectl create -f ${CRD}; done
+NAMESPACE="monitoring"
+
+# Helm-repository voor Prometheus-community toevoegen en bijwerken
+helm repo add prometheus-community https://prometheus-community.github.io/helm-charts
+helm repo update
+helm install kube-prometheus-stack prometheus-community/kube-prometheus-stack --namespace $NAMESPACE --create-namespace
+helm repo add grafana https://grafana.github.io/helm-charts
+helm repo update
+helm install grafana-operator grafana/grafana-operator --namespace $NAMESPACE --create-namespace
+helm repo add grafana https://grafana.github.io/helm-charts
+helm repo update
+
+kubectl apply -f ingress/grafana.yaml
 
 stop_message
